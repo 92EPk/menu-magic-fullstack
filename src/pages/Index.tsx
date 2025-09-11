@@ -120,6 +120,7 @@ const Index = () => {
         <HeroSection 
           language={language}
           onOrderClick={handleOrderClick}
+          onAddToCart={handleAddToCart}
         />
 
         {/* Menu Section */}

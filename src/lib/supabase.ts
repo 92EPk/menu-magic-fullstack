@@ -1,9 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || ''
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+import { supabase } from '@/integrations/supabase/client'
 
 // Database types
 export interface MenuItem {
@@ -108,6 +103,7 @@ export const orderService = {
     // Insert order items
     const orderItems = orderData.order_items.map(item => ({
       ...item,
+      menu_item_id: String(item.menu_item_id),
       order_id: order.id
     }))
 
@@ -138,7 +134,7 @@ export const orderService = {
   },
 
   // Update order status
-  async updateOrderStatus(orderId: number, status: Order['status']) {
+  async updateOrderStatus(orderId: string, status: Order['status']) {
     const { data, error } = await supabase
       .from('orders')
       .update({ status })

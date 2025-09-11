@@ -1,13 +1,36 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Star, Clock, Truck } from "lucide-react";
+import { ArrowRight, Star, Clock, Truck, Plus } from "lucide-react";
+import ProductCustomization from "./ProductCustomization";
+import { Product, SelectedOptions } from "@/types/product";
+import { useMenuItems } from "@/hooks/useDatabase";
 
 interface HeroSectionProps {
   language: 'ar' | 'en';
   onOrderClick: () => void;
+  onAddToCart: (product: Product, quantity?: number, selectedOptions?: SelectedOptions, totalPrice?: number) => void;
 }
 
-const HeroSection = ({ language, onOrderClick }: HeroSectionProps) => {
+const HeroSection = ({ language, onOrderClick, onAddToCart }: HeroSectionProps) => {
+  const [customizationProduct, setCustomizationProduct] = useState<Product | null>(null);
+  const { menuItems } = useMenuItems();
+  
+  // Get featured products for home page
+  const featuredProducts = menuItems.slice(0, 3).map(item => ({
+    id: parseInt(item.id.slice(-8), 16),
+    name: { ar: item.name_ar, en: item.name_en },
+    description: { ar: item.description_ar || '', en: item.description_en || '' },
+    price: item.price,
+    discountPrice: item.discount_price,
+    image: item.image_url || '/placeholder.svg',
+    categoryId: item.category_id,
+    rating: item.rating,
+    prepTime: item.prep_time,
+    isSpicy: item.is_spicy,
+    isOffer: item.is_offer
+  }));
+
   const translations = {
     ar: {
       title: "طعمك المميز في مزيج واحد",
@@ -33,6 +56,28 @@ const HeroSection = ({ language, onOrderClick }: HeroSectionProps) => {
 
   const t = translations[language];
   const isRTL = language === 'ar';
+
+  const handleProductClick = (product: Product) => {
+    // Check if product needs customization
+    const needsCustomization = ['burger', 'meat', 'chicken'].some(type => 
+      product.name.en.toLowerCase().includes(type) || 
+      product.name.ar.includes('برجر') || 
+      product.name.ar.includes('لحم') || 
+      product.name.ar.includes('دجاج') ||
+      product.name.ar.includes('فراخ')
+    );
+    
+    if (needsCustomization) {
+      setCustomizationProduct(product);
+    } else {
+      onAddToCart(product, 1, {}, product.discountPrice || product.price);
+    }
+  };
+
+  const handleCustomizedAddToCart = (product: Product, quantity: number, selectedOptions: SelectedOptions, totalPrice: number) => {
+    onAddToCart(product, quantity, selectedOptions, totalPrice);
+    setCustomizationProduct(null);
+  };
 
   return (
     <section 
@@ -141,7 +186,53 @@ const HeroSection = ({ language, onOrderClick }: HeroSectionProps) => {
             </Badge>
           </div>
         </div>
+
+        {/* Featured Products on Home */}
+        {featuredProducts.length > 0 && (
+          <div className="mt-16">
+            <h3 className={`text-2xl font-bold text-center mb-8 ${isRTL ? 'font-arabic' : ''}`}>
+              {language === 'ar' ? 'أطباق مميزة' : 'Featured Dishes'}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {featuredProducts.map((product) => (
+                <div key={product.id} className="bg-card rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <img 
+                    src={product.image} 
+                    alt={product.name[language]}
+                    className="w-full h-32 object-cover rounded-lg mb-3"
+                  />
+                  <h4 className={`font-semibold mb-2 ${isRTL ? 'font-arabic' : ''}`}>
+                    {product.name[language]}
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    <span className="text-primary font-bold">
+                      {product.discountPrice || product.price} {language === 'ar' ? 'جنيه' : 'EGP'}
+                    </span>
+                    <Button 
+                      size="sm"
+                      onClick={() => handleProductClick(product)}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      {language === 'ar' ? 'أضف' : 'Add'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Product Customization Dialog */}
+      {customizationProduct && (
+        <ProductCustomization
+          product={customizationProduct}
+          isOpen={!!customizationProduct}
+          onClose={() => setCustomizationProduct(null)}
+          onAddToCart={handleCustomizedAddToCart}
+          language={language}
+        />
+      )}
     </section>
   );
 };

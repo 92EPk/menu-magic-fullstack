@@ -21,6 +21,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCategories, useMenuItems, useOrders, Category, MenuItem } from "@/hooks/useDatabase";
 import CategoryDialog from "@/components/admin/CategoryDialog";
 import MenuItemDialog from "@/components/admin/MenuItemDialog";
+import AdminProfile from "@/components/admin/AdminProfile";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -228,11 +229,12 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="orders">إدارة الطلبات</TabsTrigger>
             <TabsTrigger value="products">إدارة المنتجات</TabsTrigger>
             <TabsTrigger value="categories">إدارة التصنيفات</TabsTrigger>
             <TabsTrigger value="analytics">التقارير</TabsTrigger>
+            <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
           </TabsList>
 
           {/* Orders Tab */}
@@ -447,6 +449,11 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-4">
+            <AdminProfile />
           </TabsContent>
         </Tabs>
 

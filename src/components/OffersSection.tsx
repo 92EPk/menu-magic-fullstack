@@ -1,18 +1,22 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Timer, Gift, Percent, ArrowRight } from "lucide-react";
-import { Product } from "@/types/product";
+import { Product, SelectedOptions } from "@/types/product";
+import ProductCustomization from "./ProductCustomization";
 import familyMealImage from "@/assets/offer-family-meal.jpg";
 import pizzaDiscountImage from "@/assets/offer-pizza-discount.jpg";
 import { useMenuItems } from "@/hooks/useDatabase";
 
 interface OffersSectionProps {
   language: 'ar' | 'en';
-  onAddToCart: (product: Product, quantity?: number) => void;
+  onAddToCart: (product: Product, quantity?: number, selectedOptions?: any, totalPrice?: number) => void;
 }
 
 const OffersSection = ({ language, onAddToCart }: OffersSectionProps) => {
+  const [customizationProduct, setCustomizationProduct] = useState<Product | null>(null);
+  
   // Get real offers from database
   const { menuItems } = useMenuItems();
   const realOffers = menuItems.filter(item => item.is_offer);
@@ -59,6 +63,28 @@ const OffersSection = ({ language, onAddToCart }: OffersSectionProps) => {
 
   const t = translations[language];
   const isRTL = language === 'ar';
+
+  const handleOfferClick = (offer: Product) => {
+    // Check if offer needs customization
+    const needsCustomization = ['burger', 'meat', 'chicken'].some(type => 
+      offer.name.en.toLowerCase().includes(type) || 
+      offer.name.ar.includes('برجر') || 
+      offer.name.ar.includes('لحم') || 
+      offer.name.ar.includes('دجاج') ||
+      offer.name.ar.includes('فراخ')
+    );
+    
+    if (needsCustomization) {
+      setCustomizationProduct(offer);
+    } else {
+      onAddToCart(offer, 1, {}, offer.discountPrice || offer.price);
+    }
+  };
+
+  const handleCustomizedAddToCart = (product: Product, quantity: number, selectedOptions: SelectedOptions, totalPrice: number) => {
+    onAddToCart(product, quantity, selectedOptions, totalPrice);
+    setCustomizationProduct(null);
+  };
 
   return (
     <section id="offers" className="py-20 bg-background" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -157,7 +183,7 @@ const OffersSection = ({ language, onAddToCart }: OffersSectionProps) => {
                     variant="hero"
                     size="lg"
                     className="w-full group-hover:scale-105 transition-transform"
-                    onClick={() => onAddToCart(offer)}
+                    onClick={() => handleOfferClick(offer)}
                   >
                     {t.orderNow}
                     <ArrowRight className={`h-4 w-4 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />
@@ -178,6 +204,17 @@ const OffersSection = ({ language, onAddToCart }: OffersSectionProps) => {
           </div>
         </div>
       </div>
+
+      {/* Product Customization Dialog */}
+      {customizationProduct && (
+        <ProductCustomization
+          product={customizationProduct}
+          isOpen={!!customizationProduct}
+          onClose={() => setCustomizationProduct(null)}
+          onAddToCart={handleCustomizedAddToCart}
+          language={language}
+        />
+      )}
     </section>
   );
 };
