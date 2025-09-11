@@ -44,6 +44,7 @@ const OffersSection = ({ language, onAddToCart }: OffersSectionProps) => {
   // Convert database offers to Product format
   const offers = realOffers.map(item => ({
     id: parseInt(item.id.slice(-8), 16),
+    dbId: item.id,
     name: { ar: item.name_ar, en: item.name_en },
     description: { ar: item.description_ar || '', en: item.description_en || '' },
     price: item.price,

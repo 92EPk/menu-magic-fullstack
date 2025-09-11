@@ -57,6 +57,7 @@ const MenuSection = ({ language, onAddToCart }: MenuSectionProps) => {
   // Convert database items to Product format
   const products: Product[] = menuItems.map(item => ({
     id: parseInt(item.id.slice(-8), 16), // Convert UUID to number for compatibility
+    dbId: item.id,
     name: { ar: item.name_ar, en: item.name_en },
     description: { ar: item.description_ar || '', en: item.description_en || '' },
     price: item.price,

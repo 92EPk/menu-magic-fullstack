@@ -79,7 +79,7 @@ const OrderSidebar = ({ language, isOpen, onOpenChange, cartItems, onOrderComple
         customer_address: customerInfo.address,
         total_amount: total,
         order_items: cartItems.map(item => ({
-          menu_item_id: String(item.id), // Convert to string for UUID
+          menu_item_id: item.dbId || String(item.id), // use original UUID when available
           quantity: item.quantity,
           unit_price: item.totalPrice,
           selected_options: item.selectedOptions || {},

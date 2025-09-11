@@ -17,6 +17,7 @@ export interface ProductCategory {
 
 export interface Product {
   id: number;
+  dbId?: string; // original UUID from database for reliable references
   name: { ar: string; en: string };
   description: { ar: string; en: string };
   price: number;
