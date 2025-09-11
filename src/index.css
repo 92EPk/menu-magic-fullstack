@@ -1,103 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Mix and Taste Restaurant Design System */
 
 @layer base {
   :root {
-    /* Restaurant Theme - Warm & Elegant */
-    --background: 35 15% 97%;
-    --foreground: 20 8% 15%;
-
+    /* Brand Colors */
+    --primary: 354 82% 58%; /* #E63946 - Warm Red */
+    --primary-foreground: 0 0% 100%;
+    --primary-dark: 350 70% 30%; /* Darker red for logo match */
+    
+    --secondary: 48 87% 59%; /* #F1C40F - Appetizing Yellow */
+    --secondary-foreground: 0 0% 0%;
+    
+    --accent: 145 63% 49%; /* #2ECC71 - Fresh Green */
+    --accent-foreground: 0 0% 100%;
+    
+    --neutral-dark: 0 0% 11%; /* #1C1C1C - Black */
+    --neutral-light: 46 88% 92%; /* #FDF6D9 - Light Cream */
+    
+    /* Background System */
+    --background: 0 0% 100%;
+    --background-cream: 46 88% 92%;
+    --foreground: 0 0% 11%;
+    
+    /* UI Elements */
     --card: 0 0% 100%;
-    --card-foreground: 20 8% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 8% 15%;
-
-    --primary: 25 80% 45%;
-    --primary-foreground: 35 15% 97%;
-
-    --secondary: 35 25% 88%;
-    --secondary-foreground: 20 8% 15%;
-
-    --muted: 35 20% 92%;
-    --muted-foreground: 20 5% 45%;
-
-    --accent: 30 60% 65%;
-    --accent-foreground: 20 8% 15%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 35 15% 85%;
-    --input: 35 15% 90%;
-    --ring: 25 80% 45%;
-
-    /* Restaurant specific tokens */
-    --hero-gradient: linear-gradient(135deg, hsl(20 80% 35%) 0%, hsl(30 75% 45%) 100%);
-    --food-shadow: 0 8px 32px hsla(20 30% 20% / 0.15);
-    --elegant-shadow: 0 4px 20px hsla(25 40% 30% / 0.1);
-    --warm-glow: 0 0 40px hsla(30 60% 65% / 0.3);
-
+    --card-foreground: 0 0% 11%;
+    
+    --muted: 46 88% 92%;
+    --muted-foreground: 0 0% 45%;
+    
+    --border: 46 50% 88%;
+    --input: 46 50% 88%;
+    --ring: 354 82% 58%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
     --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Restaurant Specific */
+    --offer-badge: 0 84% 60%; /* Red for discounts */
+    --special-badge: 145 63% 49%; /* Green for offers */
+    --status-badge: 48 87% 59%; /* Yellow for status */
+    
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-dark)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--background)), hsl(var(--background-cream)));
+    
+    /* Shadows */
+    --shadow-card: 0 4px 20px hsl(var(--primary) / 0.1);
+    --shadow-button: 0 2px 10px hsl(var(--primary) / 0.2);
+    
+    /* Animations */
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -107,6 +67,75 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-['Open_Sans'];
+    font-feature-settings: "cv03", "cv04", "cv11";
+  }
+  
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-['Poppins'];
+  }
+  
+  .font-arabic {
+    font-family: 'Cairo', 'Tahoma', sans-serif;
+  }
+  
+  .text-gradient {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Custom Animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+    50% { box-shadow: 0 0 30px hsl(var(--primary) / 0.5); }
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  /* Offer Badges */
+  .offer-badge {
+    @apply inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-semibold;
+  }
+  
+  .offer-badge-discount {
+    background: hsl(var(--offer-badge));
+    color: hsl(var(--primary-foreground));
+  }
+  
+  .offer-badge-special {
+    background: hsl(var(--special-badge));
+    color: hsl(var(--accent-foreground));
+  }
+  
+  .offer-badge-status {
+    background: hsl(var(--status-badge));
+    color: hsl(var(--secondary-foreground));
+  }
+  
+  /* RTL Support */
+  [dir="rtl"] {
+    .font-arabic {
+      font-family: 'Cairo', 'Tahoma', sans-serif;
+    }
+  }
+  
+  [dir="ltr"] {
+    .font-english {
+      font-family: 'Poppins', 'Open Sans', sans-serif;
+    }
   }
 }

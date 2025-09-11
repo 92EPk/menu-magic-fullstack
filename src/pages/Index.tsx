@@ -1,111 +1,173 @@
-import { useState } from "react";
-import { MenuHero } from "@/components/MenuHero";
-import { MenuFilter } from "@/components/MenuFilter";
-import { MenuSection } from "@/components/MenuSection";
-import { menuItems, getItemsByCategory, searchItems } from "@/data/menuData";
-import appetizersImage from "@/assets/appetizers.jpg";
-import mainsImage from "@/assets/mains.jpg";
-import dessertsImage from "@/assets/desserts.jpg";
+import { useState, useEffect } from "react";
+import Header from "@/components/Header";
+import HeroSection from "@/components/HeroSection";
+import MenuSection from "@/components/MenuSection";
+import OffersSection from "@/components/OffersSection";
+import ContactSection from "@/components/ContactSection";
+import Footer from "@/components/Footer";
+import CartSidebar from "@/components/CartSidebar";
+import OrderSidebar from "@/components/OrderSidebar";
+import { Product, SelectedOptions, CartItem } from "@/types/product";
 
 const Index = () => {
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [language, setLanguage] = useState<'ar' | 'en'>('ar');
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isOrderOpen, setIsOrderOpen] = useState(false);
 
-  const filteredItems = searchItems(
-    getItemsByCategory(activeCategory),
-    searchTerm
-  );
+  // Set document direction based on language
+  useEffect(() => {
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+  }, [language]);
 
-  const groupedItems = {
-    appetizers: filteredItems.filter(item => item.category === "appetizers"),
-    mains: filteredItems.filter(item => item.category === "mains"),
-    desserts: filteredItems.filter(item => item.category === "desserts"),
-    beverages: filteredItems.filter(item => item.category === "beverages"),
+  // Load cart from localStorage
+  useEffect(() => {
+    const savedCart = localStorage.getItem('mixandtaste-cart');
+    if (savedCart) {
+      try {
+        setCartItems(JSON.parse(savedCart));
+      } catch (error) {
+        console.error('Error loading cart from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('mixandtaste-cart', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  const handleLanguageChange = (newLanguage: 'ar' | 'en') => {
+    setLanguage(newLanguage);
   };
 
-  const shouldShowSection = (category: string, items: any[]) => {
-    return activeCategory === "all" || activeCategory === category || items.length > 0;
+  const handleAddToCart = (product: Product, quantity: number = 1, selectedOptions: SelectedOptions = {}, totalPrice?: number) => {
+    setCartItems(currentItems => {
+      const existingItem = currentItems.find(item => item.id === product.id);
+      
+      if (existingItem) {
+        return currentItems.map(item =>
+          item.id === product.id 
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      } else {
+        return [...currentItems, { 
+          ...product, 
+          quantity,
+          selectedOptions,
+          totalPrice: totalPrice || product.discountPrice || product.price
+        } as CartItem];
+      }
+    });
   };
+
+  const handleUpdateQuantity = (id: number, quantity: number) => {
+    if (quantity <= 0) {
+      handleRemoveItem(id);
+      return;
+    }
+
+    setCartItems(currentItems =>
+      currentItems.map(item =>
+        item.id === id ? { ...item, quantity } : item
+      )
+    );
+  };
+
+  const handleRemoveItem = (id: number) => {
+    setCartItems(currentItems => 
+      currentItems.filter(item => item.id !== id)
+    );
+  };
+
+  const handleClearCart = () => {
+    setCartItems([]);
+  };
+
+  const handleCartClick = () => {
+    setIsCartOpen(true);
+  };
+
+  const handleOrderClick = () => {
+    if (cartItems.length > 0) {
+      setIsOrderOpen(true);
+    } else {
+      setIsCartOpen(true);
+    }
+  };
+
+  const handleOrderComplete = () => {
+    setCartItems([]);
+  };
+
+  const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <div className="min-h-screen bg-background">
-      <MenuHero />
-      
-      <MenuFilter
-        activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+      {/* Header */}
+      <Header 
+        language={language}
+        onLanguageChange={handleLanguageChange}
+        cartItemsCount={cartItemsCount}
+        onCartClick={handleCartClick}
       />
 
-      <main className="pb-16">
-        {shouldShowSection("appetizers", groupedItems.appetizers) && groupedItems.appetizers.length > 0 && (
-          <MenuSection
-            title="Appetizers"
-            image={appetizersImage}
-            items={groupedItems.appetizers}
-          />
-        )}
+      {/* Main Content */}
+      <main>
+        {/* Hero Section */}
+        <HeroSection 
+          language={language}
+          onOrderClick={handleOrderClick}
+        />
 
-        {shouldShowSection("mains", groupedItems.mains) && groupedItems.mains.length > 0 && (
-          <MenuSection
-            title="Main Courses"
-            image={mainsImage}
-            items={groupedItems.mains}
-          />
-        )}
+        {/* Menu Section */}
+        <MenuSection 
+          language={language}
+          onAddToCart={handleAddToCart}
+        />
 
-        {shouldShowSection("desserts", groupedItems.desserts) && groupedItems.desserts.length > 0 && (
-          <MenuSection
-            title="Desserts"
-            image={dessertsImage}
-            items={groupedItems.desserts}
-          />
-        )}
+        {/* Offers Section */}
+        <OffersSection 
+          language={language}
+          onAddToCart={handleAddToCart}
+        />
 
-        {shouldShowSection("beverages", groupedItems.beverages) && groupedItems.beverages.length > 0 && (
-          <div className="py-16 px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-12">
-                Beverages
-              </h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                {groupedItems.beverages.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-card border border-border rounded-lg p-6 shadow-md hover:shadow-lg transition-all duration-300"
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                        {item.name}
-                        {item.isSignature && (
-                          <span className="text-xs bg-accent text-accent-foreground px-2 py-1 rounded-full">
-                            Signature
-                          </span>
-                        )}
-                      </h3>
-                      <span className="text-xl font-bold text-primary ml-4 shrink-0">
-                        {item.price}
-                      </span>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {filteredItems.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-xl text-muted-foreground">
-              No items found matching your search.
-            </p>
-          </div>
-        )}
+        {/* Contact Section */}
+        <ContactSection 
+          language={language}
+        />
       </main>
+
+      {/* Footer */}
+      <Footer 
+        language={language}
+      />
+
+      {/* Cart Sidebar */}
+      <CartSidebar
+        language={language}
+        isOpen={isCartOpen}
+        onOpenChange={setIsCartOpen}
+        cartItems={cartItems}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onClearCart={handleClearCart}
+        onCheckout={() => {
+          setIsCartOpen(false);
+          setIsOrderOpen(true);
+        }}
+      />
+
+      {/* Order Sidebar */}
+      <OrderSidebar
+        language={language}
+        isOpen={isOrderOpen}
+        onOpenChange={setIsOrderOpen}
+        cartItems={cartItems}
+        onOrderComplete={handleOrderComplete}
+      />
     </div>
   );
 };
