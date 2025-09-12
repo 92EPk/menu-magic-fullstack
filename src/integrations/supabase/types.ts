@@ -55,6 +55,7 @@ export type Database = {
       }
       menu_items: {
         Row: {
+          allow_customization: boolean | null
           category_id: string
           created_at: string
           description_ar: string | null
@@ -63,6 +64,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_available: boolean | null
+          is_featured: boolean | null
           is_offer: boolean | null
           is_spicy: boolean | null
           name_ar: string
@@ -74,6 +76,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allow_customization?: boolean | null
           category_id: string
           created_at?: string
           description_ar?: string | null
@@ -82,6 +85,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          is_featured?: boolean | null
           is_offer?: boolean | null
           is_spicy?: boolean | null
           name_ar: string
@@ -93,6 +97,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allow_customization?: boolean | null
           category_id?: string
           created_at?: string
           description_ar?: string | null
@@ -101,6 +106,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          is_featured?: boolean | null
           is_offer?: boolean | null
           is_spicy?: boolean | null
           name_ar?: string
@@ -202,6 +208,57 @@ export type Database = {
           status?: string | null
           total_amount?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      special_offers: {
+        Row: {
+          created_at: string
+          description_ar: string | null
+          description_en: string | null
+          discount_amount: number | null
+          discount_percentage: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          sort_order: number | null
+          title_ar: string
+          title_en: string
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          title_ar: string
+          title_en: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          title_ar?: string
+          title_en?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
         }
         Relationships: []
       }

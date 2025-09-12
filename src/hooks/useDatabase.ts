@@ -31,10 +31,29 @@ export interface MenuItem {
   is_spicy: boolean;
   is_offer: boolean;
   is_available: boolean;
+  allow_customization: boolean;
+  is_featured: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;
   category?: Category;
+}
+
+export interface SpecialOffer {
+  id: string;
+  title_ar: string;
+  title_en: string;
+  description_ar?: string;
+  description_en?: string;
+  image_url?: string;
+  discount_percentage?: number;
+  discount_amount?: number;
+  valid_from: string;
+  valid_until?: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Order {
@@ -204,7 +223,6 @@ export const useMenuItems = () => {
           *,
           category:categories(*)
         `)
-        .eq('is_available', true)
         .order('sort_order');
 
       if (error) throw error;
@@ -449,5 +467,130 @@ export const useOrders = () => {
     fetchOrders,
     createOrder,
     updateOrderStatus,
+  };
+};
+
+// Hook for special offers
+export const useSpecialOffers = () => {
+  const [specialOffers, setSpecialOffers] = useState<SpecialOffer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const fetchSpecialOffers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('special_offers')
+        .select('*')
+        .order('sort_order');
+
+      if (error) throw error;
+      setSpecialOffers(data || []);
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error loading special offers';
+      setError(message);
+      console.error('Error fetching special offers:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addSpecialOffer = async (offerData: Omit<SpecialOffer, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('special_offers')
+        .insert(offerData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      toast({
+        title: "Special Offer Added",
+        description: "New special offer has been added successfully",
+      });
+      
+      await fetchSpecialOffers();
+      return data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error adding special offer';
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  const updateSpecialOffer = async (id: string, updates: Partial<SpecialOffer>) => {
+    try {
+      const { data, error } = await supabase
+        .from('special_offers')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      toast({
+        title: "Special Offer Updated",
+        description: "Special offer has been updated successfully",
+      });
+      
+      await fetchSpecialOffers();
+      return data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error updating special offer';
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  const deleteSpecialOffer = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('special_offers')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Special Offer Deleted",
+        description: "Special offer has been deleted successfully",
+      });
+      
+      await fetchSpecialOffers();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error deleting special offer';
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  useEffect(() => {
+    fetchSpecialOffers();
+  }, []);
+
+  return {
+    specialOffers,
+    loading,
+    error,
+    fetchSpecialOffers,
+    addSpecialOffer,
+    updateSpecialOffer,
+    deleteSpecialOffer,
   };
 };

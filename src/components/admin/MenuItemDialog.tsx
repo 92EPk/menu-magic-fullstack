@@ -32,6 +32,8 @@ const MenuItemDialog = ({ isOpen, onOpenChange, menuItem, categories, onSave, lo
     is_spicy: false,
     is_offer: false,
     is_available: true,
+    allow_customization: false,
+    is_featured: false,
     sort_order: 0,
   });
 
@@ -51,6 +53,8 @@ const MenuItemDialog = ({ isOpen, onOpenChange, menuItem, categories, onSave, lo
         is_spicy: menuItem.is_spicy || false,
         is_offer: menuItem.is_offer || false,
         is_available: menuItem.is_available ?? true,
+        allow_customization: menuItem.allow_customization || false,
+        is_featured: menuItem.is_featured || false,
         sort_order: menuItem.sort_order || 0,
       });
     } else {
@@ -68,6 +72,8 @@ const MenuItemDialog = ({ isOpen, onOpenChange, menuItem, categories, onSave, lo
         is_spicy: false,
         is_offer: false,
         is_available: true,
+        allow_customization: false,
+        is_featured: false,
         sort_order: 0,
       });
     }
@@ -238,32 +244,54 @@ const MenuItemDialog = ({ isOpen, onOpenChange, menuItem, categories, onSave, lo
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_spicy"
-                checked={formData.is_spicy}
-                onCheckedChange={(checked) => handleChange('is_spicy', checked)}
-              />
-              <Label htmlFor="is_spicy">صنف حار</Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_spicy"
+                  checked={formData.is_spicy}
+                  onCheckedChange={(checked) => handleChange('is_spicy', checked)}
+                />
+                <Label htmlFor="is_spicy">صنف حار</Label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_offer"
+                  checked={formData.is_offer}
+                  onCheckedChange={(checked) => handleChange('is_offer', checked)}
+                />
+                <Label htmlFor="is_offer">عرض خاص</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_available"
+                  checked={formData.is_available}
+                  onCheckedChange={(checked) => handleChange('is_available', checked)}
+                />
+                <Label htmlFor="is_available">متاح</Label>
+              </div>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_offer"
-                checked={formData.is_offer}
-                onCheckedChange={(checked) => handleChange('is_offer', checked)}
-              />
-              <Label htmlFor="is_offer">عرض خاص</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_available"
-                checked={formData.is_available}
-                onCheckedChange={(checked) => handleChange('is_available', checked)}
-              />
-              <Label htmlFor="is_available">متاح</Label>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="allow_customization"
+                  checked={formData.allow_customization}
+                  onCheckedChange={(checked) => handleChange('allow_customization', checked)}
+                />
+                <Label htmlFor="allow_customization">يمكن تخصيصه</Label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_featured"
+                  checked={formData.is_featured}
+                  onCheckedChange={(checked) => handleChange('is_featured', checked)}
+                />
+                <Label htmlFor="is_featured">منتج مميز</Label>
+              </div>
             </div>
           </div>
 

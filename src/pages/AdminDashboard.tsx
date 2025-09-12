@@ -18,9 +18,11 @@ import {
   FolderPlus
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useCategories, useMenuItems, useOrders, Category, MenuItem } from "@/hooks/useDatabase";
+import { useCategories, useMenuItems, useOrders, useSpecialOffers, Category, MenuItem, Order, SpecialOffer } from "@/hooks/useDatabase";
 import CategoryDialog from "@/components/admin/CategoryDialog";
 import MenuItemDialog from "@/components/admin/MenuItemDialog";
+import SpecialOfferDialog from "@/components/admin/SpecialOfferDialog";
+import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
 import AdminProfile from "@/components/admin/AdminProfile";
 
 const AdminDashboard = () => {
@@ -31,10 +33,13 @@ const AdminDashboard = () => {
   const { categories, loading: categoriesLoading, addCategory, updateCategory, deleteCategory } = useCategories();
   const { menuItems, loading: menuItemsLoading, addMenuItem, updateMenuItem, deleteMenuItem } = useMenuItems();
   const { orders, loading: ordersLoading, updateOrderStatus } = useOrders();
+  const { specialOffers, loading: offersLoading, addSpecialOffer, updateSpecialOffer, deleteSpecialOffer } = useSpecialOffers();
   
   // Dialog states
   const [categoryDialog, setCategoryDialog] = useState<{ open: boolean; category?: Category | null }>({ open: false });
   const [menuItemDialog, setMenuItemDialog] = useState<{ open: boolean; menuItem?: MenuItem | null }>({ open: false });
+  const [offerDialog, setOfferDialog] = useState<{ open: boolean; offer?: SpecialOffer | null }>({ open: false });
+  const [orderDetailsModal, setOrderDetailsModal] = useState<{ open: boolean; order?: Order | null }>({ open: false });
   
   // Calculate stats from real data
   const stats = {
@@ -63,10 +68,10 @@ const AdminDashboard = () => {
 
   // Order management functions
   const handleViewOrder = (orderId: string) => {
-    toast({
-      title: "عرض الطلب",
-      description: `عرض تفاصيل الطلب #${orderId.slice(0, 8)}`,
-    });
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      setOrderDetailsModal({ open: true, order });
+    }
   };
 
   const handleEditOrder = async (orderId: string, newStatus: string) => {
@@ -139,6 +144,36 @@ const AdminDashboard = () => {
     }
   };
 
+  // Special offers management functions
+  const handleAddOffer = () => {
+    setOfferDialog({ open: true, offer: null });
+  };
+
+  const handleEditOffer = (offer: SpecialOffer) => {
+    setOfferDialog({ open: true, offer });
+  };
+
+  const handleDeleteOffer = async (offerId: string) => {
+    if (confirm('هل أنت متأكد من حذف هذا العرض؟')) {
+      try {
+        await deleteSpecialOffer(offerId);
+      } catch (error) {
+        console.error('Error deleting special offer:', error);
+      }
+    }
+  };
+
+  const handleSaveOffer = async (offerData: any) => {
+    try {
+      if (offerDialog.offer) {
+        await updateSpecialOffer(offerDialog.offer.id, offerData);
+      } else {
+        await addSpecialOffer(offerData);
+      }
+    } catch (error) {
+      console.error('Error saving special offer:', error);
+    }
+  };
 
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
@@ -229,10 +264,11 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="orders">إدارة الطلبات</TabsTrigger>
             <TabsTrigger value="products">إدارة المنتجات</TabsTrigger>
             <TabsTrigger value="categories">إدارة التصنيفات</TabsTrigger>
+            <TabsTrigger value="offers">العروض الخاصة</TabsTrigger>
             <TabsTrigger value="analytics">التقارير</TabsTrigger>
             <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
           </TabsList>
@@ -324,6 +360,14 @@ const AdminDashboard = () => {
                         <div>
                           <p className="font-medium">{product.name_ar}</p>
                           <p className="text-sm text-muted-foreground">{product.category?.name_ar}</p>
+                          <div className="flex gap-1 mt-1">
+                            {product.is_featured && (
+                              <Badge className="text-xs bg-yellow-100 text-yellow-800">مميز</Badge>
+                            )}
+                            {product.allow_customization && (
+                              <Badge className="text-xs bg-purple-100 text-purple-800">قابل للتخصيص</Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
@@ -413,6 +457,79 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Special Offers Tab */}
+          <TabsContent value="offers" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>إدارة العروض الخاصة</CardTitle>
+                  <CardDescription>إضافة وتعديل العروض والخصومات</CardDescription>
+                </div>
+                <Button onClick={handleAddOffer}>
+                  <Plus className="h-4 w-4 ml-2" />
+                  إضافة عرض جديد
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {offersLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-muted-foreground">جاري تحميل العروض...</div>
+                  </div>
+                ) : (
+                <div className="space-y-4">
+                  {specialOffers.map((offer) => (
+                    <div key={offer.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden">
+                          {offer.image_url && (
+                            <img src={offer.image_url} alt={offer.title_ar} className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium">{offer.title_ar}</p>
+                          <p className="text-sm text-muted-foreground">{offer.description_ar}</p>
+                          {offer.discount_percentage && (
+                            <Badge className="bg-green-100 text-green-800 mt-1">
+                              خصم {offer.discount_percentage}%
+                            </Badge>
+                          )}
+                          {offer.discount_amount && (
+                            <Badge className="bg-blue-100 text-blue-800 mt-1">
+                              خصم {offer.discount_amount} جنيه
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="text-left">
+                          <Badge variant={offer.is_active ? "default" : "secondary"}>
+                            {offer.is_active ? "نشط" : "غير نشط"}
+                          </Badge>
+                          {offer.valid_until && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ينتهي: {new Date(offer.valid_until).toLocaleDateString('ar-EG')}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleEditOffer(offer)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleDeleteOffer(offer.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -458,22 +575,36 @@ const AdminDashboard = () => {
         </Tabs>
 
         {/* Dialogs */}
-        <CategoryDialog
-          isOpen={categoryDialog.open}
-          onOpenChange={(open) => setCategoryDialog({ open, category: null })}
-          category={categoryDialog.category}
-          onSave={handleSaveCategory}
-          loading={categoriesLoading}
-        />
+      <CategoryDialog
+        isOpen={categoryDialog.open}
+        onOpenChange={(open) => setCategoryDialog({ open, category: null })}
+        category={categoryDialog.category}
+        onSave={handleSaveCategory}
+        loading={categoriesLoading}
+      />
 
-        <MenuItemDialog
-          isOpen={menuItemDialog.open}
-          onOpenChange={(open) => setMenuItemDialog({ open, menuItem: null })}
-          menuItem={menuItemDialog.menuItem}
-          categories={categories}
-          onSave={handleSaveMenuItem}
-          loading={menuItemsLoading}
-        />
+      <MenuItemDialog
+        isOpen={menuItemDialog.open}
+        onOpenChange={(open) => setMenuItemDialog({ open, menuItem: null })}
+        menuItem={menuItemDialog.menuItem}
+        categories={categories}
+        onSave={handleSaveMenuItem}
+        loading={menuItemsLoading}
+      />
+
+      <SpecialOfferDialog
+        isOpen={offerDialog.open}
+        onOpenChange={(open) => setOfferDialog({ open, offer: null })}
+        specialOffer={offerDialog.offer}
+        onSave={handleSaveOffer}
+        loading={offersLoading}
+      />
+
+      <OrderDetailsModal
+        isOpen={orderDetailsModal.open}
+        onOpenChange={(open) => setOrderDetailsModal({ open, order: null })}
+        order={orderDetailsModal.order}
+      />
       </div>
     </div>
   );
