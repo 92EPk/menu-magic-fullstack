@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, Check } from "lucide-react";
-import { Product, PRODUCT_CATEGORIES, PRODUCT_OPTIONS, SelectedOptions, ProductOption } from "@/types/product";
+import { Product, SelectedOptions } from "@/types/product";
+import { useCustomizationOptions } from "@/hooks/useDatabase";
 
 interface ProductCustomizationProps {
   product: Product;
@@ -23,15 +24,14 @@ const ProductCustomization = ({
 }: ProductCustomizationProps) => {
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
-  const [secondaryOptions, setSecondaryOptions] = useState<SelectedOptions>({});
+  const { customizationOptions, loading } = useCustomizationOptions();
 
   const isRTL = language === 'ar';
-  const category = PRODUCT_CATEGORIES[product.categoryId];
   
   const translations = {
     ar: {
       customize: "تخصيص طلبك",
-      baseIncludes: "يشمل الطبق",
+      customizeDescription: "اختر الخيارات التي تفضلها لطبقك",
       chooseOptions: "اختر من الخيارات التالية",
       required: "مطلوب",
       optional: "اختياري", 
@@ -39,15 +39,11 @@ const ProductCustomization = ({
       totalPrice: "السعر الإجمالي",
       addToCart: "أضف للسلة",
       egp: "جنيه",
-      breadType: "نوع العيش",
-      sauceType: "نوع الصوص",
-      presentation: "طريقة التقديم",
-      pastaSauce: "صوص المكرونة",
-      selectOption: "اختر..."
+      loading: "جاري التحميل..."
     },
     en: {
       customize: "Customize Your Order",
-      baseIncludes: "Base dish includes",
+      customizeDescription: "Choose your preferred options for your dish",
       chooseOptions: "Choose from the following options",
       required: "Required",
       optional: "Optional",
@@ -55,11 +51,7 @@ const ProductCustomization = ({
       totalPrice: "Total Price",
       addToCart: "Add to Cart",
       egp: "EGP",
-      breadType: "Bread Type",
-      sauceType: "Sauce Type", 
-      presentation: "Presentation",
-      pastaSauce: "Pasta Sauce",
-      selectOption: "Select..."
+      loading: "Loading..."
     }
   };
 
@@ -68,31 +60,29 @@ const ProductCustomization = ({
   // Reset selections when product changes
   useEffect(() => {
     setSelectedOptions({});
-    setSecondaryOptions({});
     setQuantity(1);
   }, [product.id]);
 
-  const getOptionsByType = (type: string): ProductOption[] => {
-    return category?.availableOptions?.filter(option => option.type === type) || [];
-  };
+  // Get customization options for this product's category
+  const productOptions = customizationOptions.filter(option => 
+    option.category_id === product.categoryId && option.is_active
+  );
 
-  const isRequiredOption = (type: string): boolean => {
-    return category?.requiredOptions?.includes(type) || false;
-  };
+  // Group options by type
+  const optionsByType = productOptions.reduce((acc, option) => {
+    if (!acc[option.option_type]) {
+      acc[option.option_type] = [];
+    }
+    acc[option.option_type].push(option);
+    return acc;
+  }, {} as Record<string, typeof productOptions>);
 
   const calculateTotalPrice = (): number => {
     let basePrice = product.discountPrice || product.price;
     
     // Add option prices
     Object.values(selectedOptions).forEach(optionId => {
-      const option = category?.availableOptions?.find(opt => opt.id === optionId);
-      if (option?.price) {
-        basePrice += option.price;
-      }
-    });
-
-    Object.values(secondaryOptions).forEach(optionId => {
-      const option = category?.availableOptions?.find(opt => opt.id === optionId);
+      const option = productOptions.find(opt => opt.id === optionId);
       if (option?.price) {
         basePrice += option.price;
       }
@@ -102,36 +92,19 @@ const ProductCustomization = ({
   };
 
   const handleOptionSelect = (optionType: string, optionId: string) => {
-    if (optionType === 'presentation') {
-      setSelectedOptions({ ...selectedOptions, [optionType]: optionId });
-      // Clear secondary options when presentation changes
-      setSecondaryOptions({});
-    } else {
-      setSelectedOptions({ ...selectedOptions, [optionType]: optionId });
-    }
-  };
-
-  const handleSecondaryOptionSelect = (optionType: string, optionId: string) => {
-    setSecondaryOptions({ ...secondaryOptions, [optionType]: optionId });
+    setSelectedOptions(prev => ({ ...prev, [optionType]: optionId }));
   };
 
   const isValidSelection = (): boolean => {
-    if (!category) return false;
-    
-    // Check if all required options are selected
-    for (const requiredType of category.requiredOptions) {
+    // Check if all required option types are selected
+    const requiredTypes = Object.keys(optionsByType).filter(type => {
+      return optionsByType[type].some(option => option.is_required);
+    });
+
+    for (const requiredType of requiredTypes) {
       if (!selectedOptions[requiredType]) {
         return false;
       }
-    }
-
-    // Check secondary options based on presentation
-    const presentation = selectedOptions.presentation;
-    if (presentation === 'sandwich' && (product.categoryId === 'meat' || product.categoryId === 'chicken')) {
-      return !!secondaryOptions.bread;
-    }
-    if (presentation === 'meal_pasta' && (product.categoryId === 'meat' || product.categoryId === 'chicken')) {
-      return !!secondaryOptions.pasta_sauce;
     }
 
     return true;
@@ -140,28 +113,34 @@ const ProductCustomization = ({
   const handleAddToCart = () => {
     if (!isValidSelection()) return;
     
-    const allOptions = { ...selectedOptions, ...secondaryOptions };
-    onAddToCart(product, quantity, allOptions, calculateTotalPrice());
+    onAddToCart(product, quantity, selectedOptions, calculateTotalPrice());
     onClose();
   };
 
-  const renderOptionGroup = (
-    optionType: string, 
-    title: string, 
-    isRequired: boolean = false,
-    isSecondary: boolean = false
-  ) => {
-    const options = getOptionsByType(optionType);
+  const renderOptionGroup = (optionType: string, options: typeof productOptions) => {
     if (!options.length) return null;
 
-    const selectedValue = isSecondary ? secondaryOptions[optionType] : selectedOptions[optionType];
-    const handleSelect = isSecondary ? handleSecondaryOptionSelect : handleOptionSelect;
+    const isRequired = options.some(option => option.is_required);
+    const selectedValue = selectedOptions[optionType];
+
+    // Get type display name
+    const typeNames = {
+      bread: { ar: "نوع العيش", en: "Bread Type" },
+      sauce: { ar: "نوع الصوص", en: "Sauce Type" },
+      presentation: { ar: "طريقة التقديم", en: "Presentation" },
+      pasta_sauce: { ar: "صوص المكرونة", en: "Pasta Sauce" },
+      size: { ar: "الحجم", en: "Size" },
+      extras: { ar: "إضافات", en: "Extras" }
+    };
+
+    const typeName = typeNames[optionType as keyof typeof typeNames] || 
+      { ar: optionType, en: optionType };
 
     return (
-      <div className="space-y-3">
+      <div key={optionType} className="space-y-3">
         <div className="flex items-center gap-2">
           <h4 className={`font-medium ${isRTL ? 'font-arabic' : ''}`}>
-            {title}
+            {typeName[language]}
           </h4>
           {isRequired && (
             <Badge variant="destructive" className="text-xs">
@@ -170,21 +149,21 @@ const ProductCustomization = ({
           )}
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           {options.map((option) => (
             <Button
               key={option.id}
               variant={selectedValue === option.id ? "default" : "outline"}
               className={`justify-start text-sm h-auto py-3 ${isRTL ? 'font-arabic' : ''}`}
-              onClick={() => handleSelect(optionType, option.id)}
+              onClick={() => handleOptionSelect(optionType, option.id)}
             >
               <div className="flex items-center gap-2 w-full">
                 {selectedValue === option.id && (
                   <Check className="h-3 w-3" />
                 )}
                 <div className="flex-1 text-start">
-                  <div>{option.name[language]}</div>
-                  {option.price && (
+                  <div>{language === 'ar' ? option.name_ar : option.name_en}</div>
+                  {option.price > 0 && (
                     <div className="text-xs text-muted-foreground">
                       +{option.price} {t.egp}
                     </div>
@@ -198,13 +177,6 @@ const ProductCustomization = ({
     );
   };
 
-  const shouldShowSecondaryOptions = () => {
-    const presentation = selectedOptions.presentation;
-    return presentation === 'sandwich' || presentation === 'meal_pasta';
-  };
-
-  if (!category) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
@@ -215,13 +187,16 @@ const ProductCustomization = ({
           <DialogTitle className={`text-xl ${isRTL ? 'font-arabic' : ''}`}>
             {t.customize}
           </DialogTitle>
+          <DialogDescription className={`${isRTL ? 'font-arabic' : ''}`}>
+            {t.customizeDescription}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Product Info */}
           <div className="flex gap-4">
             <img 
-              src={product.image} 
+              src={product.image || '/placeholder.svg'} 
               alt={product.name[language]}
               className="w-20 h-20 object-cover rounded-lg"
             />
@@ -235,49 +210,31 @@ const ProductCustomization = ({
             </div>
           </div>
 
-          {/* Base includes */}
-          <div className="bg-secondary/10 p-4 rounded-lg">
-            <h4 className={`font-medium mb-2 ${isRTL ? 'font-arabic' : ''}`}>
-              {t.baseIncludes}:
-            </h4>
-            <p className={`text-sm text-muted-foreground ${isRTL ? 'font-arabic' : ''}`}>
-              {category.baseIncludes[language]}
-            </p>
-          </div>
-
           <Separator />
 
-          {/* Primary Options */}
-          <div className="space-y-4">
-            <h3 className={`font-semibold ${isRTL ? 'font-arabic' : ''}`}>
-              {t.chooseOptions}
-            </h3>
-            
-            {product.categoryId === 'burger' && (
-              <>
-                {renderOptionGroup('bread', t.breadType, true)}
-                {renderOptionGroup('sauce', t.sauceType, true)}
-              </>
-            )}
-
-            {(product.categoryId === 'meat' || product.categoryId === 'chicken') && (
-              renderOptionGroup('presentation', t.presentation, true)
-            )}
-          </div>
-
-          {/* Secondary Options */}
-          {shouldShowSecondaryOptions() && (
-            <>
-              <Separator />
-              <div className="space-y-4">
-                {selectedOptions.presentation === 'sandwich' && (
-                  renderOptionGroup('bread', t.breadType, true, true)
-                )}
-                {selectedOptions.presentation === 'meal_pasta' && (
-                  renderOptionGroup('pasta_sauce', t.pastaSauce, true, true)
-                )}
+          {/* Customization Options */}
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className={`text-muted-foreground ${isRTL ? 'font-arabic' : ''}`}>
+                {t.loading}
               </div>
-            </>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h3 className={`font-semibold ${isRTL ? 'font-arabic' : ''}`}>
+                {t.chooseOptions}
+              </h3>
+              
+              {Object.keys(optionsByType).length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  {language === 'ar' ? 'لا توجد خيارات تخصيص متاحة' : 'No customization options available'}
+                </div>
+              ) : (
+                Object.entries(optionsByType).map(([optionType, options]) => 
+                  renderOptionGroup(optionType, options)
+                )
+              )}
+            </div>
           )}
 
           <Separator />
@@ -323,7 +280,7 @@ const ProductCustomization = ({
             className="w-full"
             size="lg"
             onClick={handleAddToCart}
-            disabled={!isValidSelection()}
+            disabled={!isValidSelection() || loading}
           >
             {t.addToCart}
           </Button>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Package, 
@@ -15,14 +16,27 @@ import {
   Edit,
   Trash2,
   Bell,
-  FolderPlus
+  FolderPlus,
+  Settings
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useCategories, useMenuItems, useOrders, useSpecialOffers, Category, MenuItem, Order, SpecialOffer } from "@/hooks/useDatabase";
+import { 
+  useCategories, 
+  useMenuItems, 
+  useOrders, 
+  useSpecialOffers,
+  useCustomizationOptions,
+  Category, 
+  MenuItem, 
+  Order, 
+  SpecialOffer,
+  CustomizationOption
+} from "@/hooks/useDatabase";
 import CategoryDialog from "@/components/admin/CategoryDialog";
 import MenuItemDialog from "@/components/admin/MenuItemDialog";
 import SpecialOfferDialog from "@/components/admin/SpecialOfferDialog";
 import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
+import CustomizationOptionsDialog from "@/components/admin/CustomizationOptionsDialog";
 import AdminProfile from "@/components/admin/AdminProfile";
 
 const AdminDashboard = () => {
@@ -34,12 +48,14 @@ const AdminDashboard = () => {
   const { menuItems, loading: menuItemsLoading, addMenuItem, updateMenuItem, deleteMenuItem } = useMenuItems();
   const { orders, loading: ordersLoading, updateOrderStatus } = useOrders();
   const { specialOffers, loading: offersLoading, addSpecialOffer, updateSpecialOffer, deleteSpecialOffer } = useSpecialOffers();
+  const { customizationOptions, deleteCustomizationOption } = useCustomizationOptions();
   
   // Dialog states
   const [categoryDialog, setCategoryDialog] = useState<{ open: boolean; category?: Category | null }>({ open: false });
   const [menuItemDialog, setMenuItemDialog] = useState<{ open: boolean; menuItem?: MenuItem | null }>({ open: false });
   const [offerDialog, setOfferDialog] = useState<{ open: boolean; offer?: SpecialOffer | null }>({ open: false });
   const [orderDetailsModal, setOrderDetailsModal] = useState<{ open: boolean; order?: Order | null }>({ open: false });
+  const [customizationDialog, setCustomizationDialog] = useState<{ open: boolean; option?: CustomizationOption | null }>({ open: false });
   
   // Calculate stats from real data
   const stats = {
@@ -530,6 +546,95 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Customization Options Tab */}
+          <TabsContent value="customization" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Customization Options Management</h2>
+              <Button 
+                onClick={() => setCustomizationDialog({ open: true, option: null })}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Customization Option
+              </Button>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Customization Options</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Name (AR)</TableHead>
+                      <TableHead>Name (EN)</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Required</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {customizationOptions.map((option) => {
+                      const category = categories.find(cat => cat.id === option.category_id);
+                      return (
+                        <TableRow key={option.id}>
+                          <TableCell>
+                            {category?.name_en || 'Unknown'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {option.option_type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{option.name_ar}</TableCell>
+                          <TableCell>{option.name_en}</TableCell>
+                          <TableCell>
+                            {option.price > 0 ? `${option.price} EGP` : 'Free'}
+                          </TableCell>
+                          <TableCell>
+                            {option.is_required ? (
+                              <Badge variant="destructive">Required</Badge>
+                            ) : (
+                              <Badge variant="secondary">Optional</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {option.is_active ? (
+                              <Badge variant="default">Active</Badge>
+                            ) : (
+                              <Badge variant="secondary">Inactive</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setCustomizationDialog({ open: true, option })}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => deleteCustomizationOption(option.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -562,7 +667,13 @@ const AdminDashboard = () => {
                       <span>دجاج حار مقلي</span>
                       <Badge>28 طلب</Badge>
                     </div>
-                  </div>
+      {/* Customization Options Dialog */}
+      <CustomizationOptionsDialog
+        isOpen={customizationDialog.open}
+        onClose={() => setCustomizationDialog({ open: false })}
+        option={customizationDialog.option || null}
+      />
+    </div>
                 </CardContent>
               </Card>
             </div>

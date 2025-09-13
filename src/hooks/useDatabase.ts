@@ -594,3 +594,155 @@ export const useSpecialOffers = () => {
     deleteSpecialOffer,
   };
 };
+
+// Customization Options Interface
+export interface CustomizationOption {
+  id: string;
+  category_id: string;
+  option_type: string;
+  name_ar: string;
+  name_en: string;
+  price: number;
+  is_required: boolean;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomizationGroup {
+  id: string;
+  name_ar: string;
+  name_en: string;
+  category_id: string;
+  is_required: boolean;
+  allow_multiple: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Hook for customization options
+export const useCustomizationOptions = () => {
+  const [customizationOptions, setCustomizationOptions] = useState<CustomizationOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const fetchCustomizationOptions = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('customization_options')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (error) throw error;
+      setCustomizationOptions(data || []);
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error loading customization options';
+      setError(message);
+      console.error('Error fetching customization options:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addCustomizationOption = async (optionData: Omit<CustomizationOption, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('customization_options')
+        .insert(optionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      toast({
+        title: "Customization Option Added",
+        description: "New customization option has been added successfully",
+      });
+      
+      await fetchCustomizationOptions();
+      return data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error adding customization option';
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  const updateCustomizationOption = async (id: string, updates: Partial<CustomizationOption>) => {
+    try {
+      const { data, error } = await supabase
+        .from('customization_options')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      toast({
+        title: "Customization Option Updated",
+        description: "Customization option has been updated successfully",
+      });
+      
+      await fetchCustomizationOptions();
+      return data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error updating customization option';
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  const deleteCustomizationOption = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('customization_options')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Customization Option Deleted",
+        description: "Customization option has been deleted successfully",
+      });
+      
+      await fetchCustomizationOptions();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error deleting customization option';
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomizationOptions();
+  }, []);
+
+  return {
+    customizationOptions,
+    loading,
+    error,
+    fetchCustomizationOptions,
+    addCustomizationOption,
+    updateCustomizationOption,
+    deleteCustomizationOption,
+  };
+};

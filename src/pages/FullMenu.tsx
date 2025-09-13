@@ -134,12 +134,20 @@ const FullMenu = () => {
   };
 
   const handleProductClick = (product: Product) => {
+    console.log('FullMenu - Product clicked:', product);
+    console.log('FullMenu - Product categoryId:', product.categoryId);
+    console.log('FullMenu - Product dbId:', product.dbId);
+    
     // Find the database item to check customization setting
     const dbItem = menuItems.find(item => item.id === product.dbId);
+    console.log('FullMenu - Database item found:', dbItem);
+    console.log('FullMenu - Allow customization:', dbItem?.allow_customization);
     
     if (dbItem?.allow_customization) {
+      console.log('FullMenu - Opening customization dialog');
       setCustomizationProduct(product);
     } else {
+      console.log('FullMenu - Adding directly to cart');
       // Add directly to cart for simple products
       handleAddToCart(product, 1, {}, product.discountPrice || product.price);
     }

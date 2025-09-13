@@ -53,6 +53,97 @@ export type Database = {
         }
         Relationships: []
       }
+      customization_groups: {
+        Row: {
+          allow_multiple: boolean | null
+          category_id: string
+          created_at: string
+          id: string
+          is_required: boolean | null
+          name_ar: string
+          name_en: string
+          updated_at: string
+        }
+        Insert: {
+          allow_multiple?: boolean | null
+          category_id: string
+          created_at?: string
+          id?: string
+          is_required?: boolean | null
+          name_ar: string
+          name_en: string
+          updated_at?: string
+        }
+        Update: {
+          allow_multiple?: boolean | null
+          category_id?: string
+          created_at?: string
+          id?: string
+          is_required?: boolean | null
+          name_ar?: string
+          name_en?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customization_groups_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customization_options: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          is_required: boolean | null
+          name_ar: string
+          name_en: string
+          option_type: string
+          price: number | null
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          name_ar: string
+          name_en: string
+          option_type: string
+          price?: number | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          name_ar?: string
+          name_en?: string
+          option_type?: string
+          price?: number | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customization_options_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           allow_customization: boolean | null

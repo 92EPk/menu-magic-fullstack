@@ -78,12 +78,20 @@ const MenuSection = ({ language, onAddToCart }: MenuSectionProps) => {
   const isRTL = language === 'ar';
 
   const handleProductClick = (product: Product) => {
+    console.log('Product clicked:', product);
+    console.log('Product categoryId:', product.categoryId);
+    console.log('Product dbId:', product.dbId);
+    
     // Find the database item to check customization setting
     const dbItem = menuItems.find(item => item.id === product.dbId);
+    console.log('Database item found:', dbItem);
+    console.log('Allow customization:', dbItem?.allow_customization);
     
     if (dbItem?.allow_customization) {
+      console.log('Opening customization dialog');
       setCustomizationProduct(product);
     } else {
+      console.log('Adding directly to cart');
       // Add directly to cart for simple products
       onAddToCart(product, 1, {}, product.discountPrice || product.price);
     }

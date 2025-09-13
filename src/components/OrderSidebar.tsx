@@ -79,7 +79,7 @@ const OrderSidebar = ({ language, isOpen, onOpenChange, cartItems, onOrderComple
         customer_address: customerInfo.address,
         total_amount: total,
         order_items: cartItems.map(item => ({
-          menu_item_id: item.dbId || String(item.id), // use original UUID when available
+          menu_item_id: item.dbId || `temp-${item.id}`, // Use dbId from database or create temp ID
           quantity: item.quantity,
           unit_price: item.totalPrice,
           selected_options: item.selectedOptions || {},
