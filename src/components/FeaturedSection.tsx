@@ -1,30 +1,28 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Star, Clock, Flame } from "lucide-react";
 import ProductCustomization from "./ProductCustomization";
 import { Product, SelectedOptions } from "@/types/product";
-import { useMenuItems, useCategories } from "@/hooks/useDatabase";
+import { useMenuItems } from "@/hooks/useDatabase";
 
-interface MenuSectionProps {
+interface FeaturedSectionProps {
   language: 'ar' | 'en';
   onAddToCart: (product: Product, quantity?: number, selectedOptions?: SelectedOptions, totalPrice?: number) => void;
 }
 
-const MenuSection = ({ language, onAddToCart }: MenuSectionProps) => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+const FeaturedSection = ({ language, onAddToCart }: FeaturedSectionProps) => {
   const [customizationProduct, setCustomizationProduct] = useState<Product | null>(null);
   
-  // Database hooks
-  const { menuItems, loading } = useMenuItems();
-  const { categories: dbCategories } = useCategories();
+  // Get featured items from database
+  const { menuItems } = useMenuItems();
+  const featuredItems = menuItems.filter(item => item.is_featured);
 
   const translations = {
     ar: {
-      ourMenu: "قائمة طعامنا",
-      menuSubtitle: "تذوق أشهى الأطباق المحضرة بعناية فائقة وحب",
-      all: "الكل",
+      featuredDishes: "أطباقنا المميزة",
+      featuredSubtitle: "أشهر الأطباق الأكثر طلباً من قبل عملائنا",
       addToCart: "أضف للسلة",
       customize: "تخصيص",
       spicy: "حار",
@@ -33,9 +31,8 @@ const MenuSection = ({ language, onAddToCart }: MenuSectionProps) => {
       egp: "جنيه"
     },
     en: {
-      ourMenu: "Our Menu",
-      menuSubtitle: "Taste the most delicious dishes prepared with exceptional care and love",
-      all: "All",
+      featuredDishes: "Featured Dishes",
+      featuredSubtitle: "Our most popular dishes ordered by our customers",
       addToCart: "Add to Cart",
       customize: "Customize",
       spicy: "Spicy",
@@ -45,34 +42,21 @@ const MenuSection = ({ language, onAddToCart }: MenuSectionProps) => {
     }
   };
 
-  // Convert database categories to filter options
-  const categories = [
-    { id: 'all', name: translations[language].all },
-    ...dbCategories.map(cat => ({
-      id: cat.id,
-      name: language === 'ar' ? cat.name_ar : cat.name_en
-    }))
-  ];
-
   // Convert database items to Product format
-  const products: Product[] = menuItems.map(item => ({
-    id: parseInt(item.id.slice(-8), 16), // Convert UUID to number for compatibility
+  const products: Product[] = featuredItems.map(item => ({
+    id: parseInt(item.id.slice(-8), 16),
     dbId: item.id,
     name: { ar: item.name_ar, en: item.name_en },
     description: { ar: item.description_ar || '', en: item.description_en || '' },
     price: item.price,
     discountPrice: item.discount_price,
-    image: item.image_url || '',
+    image: item.image_url || '/placeholder.svg',
     categoryId: item.category_id,
     rating: item.rating,
     prepTime: item.prep_time,
     isSpicy: item.is_spicy,
     isOffer: item.is_offer
   }));
-  
-  const filteredProducts = selectedCategory === 'all' 
-    ? products 
-    : products.filter(product => product.categoryId === selectedCategory);
 
   const t = translations[language];
   const isRTL = language === 'ar';
@@ -94,51 +78,35 @@ const MenuSection = ({ language, onAddToCart }: MenuSectionProps) => {
     setCustomizationProduct(null);
   };
 
+  // Don't render if no featured items
+  if (featuredItems.length === 0) {
+    return null;
+  }
+
   return (
     <div>
-      <section id="menu" className="py-20 bg-background-cream/50" dir={isRTL ? 'rtl' : 'ltr'}>
+      <section className="py-20 bg-background-cream/30" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-12">
             <h2 className={`text-4xl lg:text-5xl font-bold text-primary mb-4 ${isRTL ? 'font-arabic' : ''}`}>
-              {t.ourMenu}
+              {t.featuredDishes}
             </h2>
             <p className={`text-xl text-muted-foreground max-w-2xl mx-auto ${isRTL ? 'font-arabic' : ''}`}>
-              {t.menuSubtitle}
+              {t.featuredSubtitle}
             </p>
           </div>
 
-          {/* Category Filter */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`${isRTL ? 'font-arabic' : ''} transition-all duration-300`}
-              >
-                {category.name}
-              </Button>
-            ))}
-          </div>
-
           {/* Products Grid */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className={`text-muted-foreground ${isRTL ? 'font-arabic' : ''}`}>
-                {language === 'ar' ? 'جاري تحميل القائمة...' : 'Loading menu...'}
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProducts.map((product) => {
-                const dbItem = menuItems.find(item => item.id === product.dbId);
-                return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {products.map((product) => {
+              const dbItem = menuItems.find(item => item.id === product.dbId);
+              return (
                 <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                  <CardHeader className="p-0 relative">
+                  <div className="p-0 relative">
                     <div className="aspect-[4/3] overflow-hidden">
                       <img 
-                        src={product.image || '/placeholder.svg'} 
+                        src={product.image} 
                         alt={product.name[language]}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
@@ -164,7 +132,7 @@ const MenuSection = ({ language, onAddToCart }: MenuSectionProps) => {
                       <Star className="h-3 w-3 fill-secondary text-secondary" />
                       <span className="text-xs font-medium">{product.rating}</span>
                     </div>
-                  </CardHeader>
+                  </div>
 
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-3">
@@ -210,10 +178,9 @@ const MenuSection = ({ language, onAddToCart }: MenuSectionProps) => {
                     </div>
                   </CardContent>
                 </Card>
-                );
-              })}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -231,4 +198,4 @@ const MenuSection = ({ language, onAddToCart }: MenuSectionProps) => {
   );
 };
 
-export default MenuSection;
+export default FeaturedSection;

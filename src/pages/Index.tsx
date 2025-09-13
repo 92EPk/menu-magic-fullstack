@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import MenuSection from "@/components/MenuSection";
+import FeaturedSection from "@/components/FeaturedSection";
 import OffersSection from "@/components/OffersSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
@@ -125,6 +126,12 @@ const Index = () => {
 
         {/* Menu Section */}
         <MenuSection 
+          language={language}
+          onAddToCart={handleAddToCart}
+        />
+
+        {/* Featured Section */}
+        <FeaturedSection 
           language={language}
           onAddToCart={handleAddToCart}
         />

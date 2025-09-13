@@ -6,8 +6,7 @@ import { Timer, Gift, Percent, ArrowRight } from "lucide-react";
 import { Product, SelectedOptions } from "@/types/product";
 import ProductCustomization from "./ProductCustomization";
 import familyMealImage from "@/assets/offer-family-meal.jpg";
-import pizzaDiscountImage from "@/assets/offer-pizza-discount.jpg";
-import { useMenuItems } from "@/hooks/useDatabase";
+import { useSpecialOffers } from "@/hooks/useDatabase";
 
 interface OffersSectionProps {
   language: 'ar' | 'en';
@@ -17,9 +16,9 @@ interface OffersSectionProps {
 const OffersSection = ({ language, onAddToCart }: OffersSectionProps) => {
   const [customizationProduct, setCustomizationProduct] = useState<Product | null>(null);
   
-  // Get real offers from database
-  const { menuItems } = useMenuItems();
-  const realOffers = menuItems.filter(item => item.is_offer);
+  // Get special offers from database
+  const { specialOffers } = useSpecialOffers();
+  const activeOffers = specialOffers.filter(offer => offer.is_active);
   const translations = {
     ar: {
       specialOffers: "عروضنا الخاصة",
@@ -41,45 +40,39 @@ const OffersSection = ({ language, onAddToCart }: OffersSectionProps) => {
     }
   };
 
-  // Convert database offers to Product format
-  const offers = realOffers.map(item => ({
-    id: parseInt(item.id.slice(-8), 16),
-    dbId: item.id,
-    name: { ar: item.name_ar, en: item.name_en },
-    description: { ar: item.description_ar || '', en: item.description_en || '' },
-    price: item.price,
-    discountPrice: item.discount_price,
-    image: item.image_url || familyMealImage, // Fallback image
-    categoryId: "offer",
-    rating: item.rating,
-    prepTime: item.prep_time,
-    isSpicy: item.is_spicy,
-    isOffer: true,
-    // Additional offer-specific properties for display
-    discount: item.discount_price ? Math.round(((item.price - item.discount_price) / item.price) * 100) : 0,
-    validUntil: "2024-03-31", // You could add this to database later
-    badge: { ar: "عرض خاص", en: "Special Deal" },
-    color: "bg-gradient-to-r from-primary to-primary-dark"
-  }));
+  // Convert database special offers to Product format
+  const offers = activeOffers.map(offer => {
+    const discountPercent = offer.discount_percentage || 
+      (offer.discount_amount ? Math.round((offer.discount_amount / 100) * 100) : 0);
+    
+    return {
+      id: parseInt(offer.id.slice(-8), 16),
+      dbId: offer.id,
+      name: { ar: offer.title_ar, en: offer.title_en },
+      description: { ar: offer.description_ar || '', en: offer.description_en || '' },
+      price: 100, // Base price for calculation
+      discountPrice: offer.discount_amount ? (100 - offer.discount_amount) : 
+                    (offer.discount_percentage ? (100 - offer.discount_percentage) : 100),
+      image: offer.image_url || familyMealImage,
+      categoryId: "offer",
+      rating: 4.8,
+      prepTime: "15-20",
+      isSpicy: false,
+      isOffer: true,
+      // Additional offer-specific properties for display
+      discount: discountPercent,
+      validUntil: offer.valid_until?.split('T')[0] || "2024-12-31",
+      badge: { ar: "عرض خاص", en: "Special Deal" },
+      color: "bg-gradient-to-r from-primary to-primary-dark"
+    };
+  });
 
   const t = translations[language];
   const isRTL = language === 'ar';
 
   const handleOfferClick = (offer: Product) => {
-    // Check if offer needs customization
-    const needsCustomization = ['burger', 'meat', 'chicken'].some(type => 
-      offer.name.en.toLowerCase().includes(type) || 
-      offer.name.ar.includes('برجر') || 
-      offer.name.ar.includes('لحم') || 
-      offer.name.ar.includes('دجاج') ||
-      offer.name.ar.includes('فراخ')
-    );
-    
-    if (needsCustomization) {
-      setCustomizationProduct(offer);
-    } else {
-      onAddToCart(offer, 1, {}, offer.discountPrice || offer.price);
-    }
+    // For special offers, add directly to cart (no customization for offers)
+    onAddToCart(offer, 1, {}, offer.discountPrice || offer.price);
   };
 
   const handleCustomizedAddToCart = (product: Product, quantity: number, selectedOptions: SelectedOptions, totalPrice: number) => {

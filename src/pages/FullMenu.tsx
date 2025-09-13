@@ -8,12 +8,7 @@ import CartSidebar from "@/components/CartSidebar";
 import ProductCustomization from "@/components/ProductCustomization";
 import { Product, SelectedOptions, CartItem } from "@/types/product";
 import { useToast } from "@/hooks/use-toast";
-import burgerSpecial from "@/assets/burger-special.jpg";
-import pizzaMargherita from "@/assets/pizza-margherita.jpg";
-import caesarSalad from "@/assets/caesar-salad.jpg";
-import chocolateCake from "@/assets/chocolate-cake.jpg";
-import orangeJuice from "@/assets/orange-juice.jpg";
-import spicyChicken from "@/assets/spicy-chicken.jpg";
+import { useMenuItems, useCategories } from "@/hooks/useDatabase";
 
 const FullMenu = () => {
   const [language] = useState<'ar' | 'en'>('ar');
@@ -22,6 +17,10 @@ const FullMenu = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [customizationProduct, setCustomizationProduct] = useState<Product | null>(null);
   const { toast } = useToast();
+  
+  // Database hooks
+  const { menuItems, loading } = useMenuItems();
+  const { categories: dbCategories } = useCategories();
 
   const translations = {
     ar: {
@@ -58,12 +57,13 @@ const FullMenu = () => {
     }
   };
 
+  // Convert database categories to filter options
   const categories = [
     { id: 'all', name: translations[language].all },
-    { id: 'mains', name: translations[language].mains },
-    { id: 'appetizers', name: translations[language].appetizers },
-    { id: 'desserts', name: translations[language].desserts },
-    { id: 'beverages', name: translations[language].beverages }
+    ...dbCategories.map(cat => ({
+      id: cat.id,
+      name: language === 'ar' ? cat.name_ar : cat.name_en
+    }))
   ];
 
   // Load cart from localStorage
@@ -83,106 +83,21 @@ const FullMenu = () => {
     localStorage.setItem('mixandtaste-cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const products: Product[] = [
-    {
-      id: 1,
-      name: { ar: "برجر إيطالي", en: "Italian Burger" },
-      description: { ar: "برجر لحم بقري طازج بالطريقة الإيطالية مع الخضروات", en: "Fresh beef burger Italian style with vegetables" },
-      price: 85,
-      discountPrice: 75,
-      image: burgerSpecial,
-      categoryId: "burger",
-      rating: 4.8,
-      prepTime: "15-20",
-      isSpicy: false,
-      isOffer: true
-    },
-    {
-      id: 2,
-      name: { ar: "برجر كلاسيك", en: "Classic Burger" },
-      description: { ar: "برجر لحم بقري كلاسيكي مع الصوص الخاص", en: "Classic beef burger with special sauce" },
-      price: 70,
-      image: burgerSpecial,
-      categoryId: "burger",
-      rating: 4.6,
-      prepTime: "15-20",
-      isSpicy: false,
-      isOffer: false
-    },
-    {
-      id: 3,
-      name: { ar: "فراخ مشوية", en: "Grilled Chicken" },
-      description: { ar: "قطع فراخ مشوية طازجة مع البهارات الطبيعية", en: "Fresh grilled chicken pieces with natural spices" },
-      price: 90,
-      image: spicyChicken,
-      categoryId: "chicken",
-      rating: 4.7,
-      prepTime: "25-30",
-      isSpicy: false,
-      isOffer: false
-    },
-    {
-      id: 4,
-      name: { ar: "لحمة مشوية", en: "Grilled Meat" },
-      description: { ar: "قطع لحم بقري مشوية طازجة مع التتبيلة الخاصة", en: "Fresh grilled beef pieces with special marinade" },
-      price: 110,
-      image: pizzaMargherita,
-      categoryId: "meat", 
-      rating: 4.8,
-      prepTime: "30-35",
-      isSpicy: false,
-      isOffer: false
-    },
-    {
-      id: 5,
-      name: { ar: "سلطة قيصر", en: "Caesar Salad" },
-      description: { ar: "سلطة كرسبي بالدجاج المشوي وصوص السيزار", en: "Crispy salad with grilled chicken and Caesar dressing" },
-      price: 65,
-      image: caesarSalad,
-      categoryId: "appetizers",
-      rating: 4.5,
-      prepTime: "10-15",
-      isSpicy: false,
-      isOffer: false
-    },
-    {
-      id: 6,
-      name: { ar: "كيك الشوكولاتة", en: "Chocolate Cake" },
-      description: { ar: "قطعة كيك شوكولاتة غنية مع كريمة الفانيليا", en: "Rich chocolate cake slice with vanilla cream" },
-      price: 45,
-      image: chocolateCake,
-      categoryId: "desserts",
-      rating: 4.9,
-      prepTime: "5",
-      isSpicy: false,
-      isOffer: false
-    },
-    {
-      id: 7,
-      name: { ar: "عصير برتقال طازج", en: "Fresh Orange Juice" },
-      description: { ar: "عصير برتقال طبيعي 100% بدون إضافات", en: "100% natural orange juice with no additives" },
-      price: 25,
-      image: orangeJuice,
-      categoryId: "beverages",
-      rating: 4.7,
-      prepTime: "5",
-      isSpicy: false,
-      isOffer: false
-    },
-    {
-      id: 8,
-      name: { ar: "فراخ حارة مقلية", en: "Spicy Fried Chicken" },
-      description: { ar: "قطع فراخ مقلية بالبهارات الحارة والأعشاب الطبيعية", en: "Fried chicken pieces with spicy herbs and natural spices" },
-      price: 95,
-      discountPrice: 80,
-      image: spicyChicken,
-      categoryId: "chicken",
-      rating: 4.4,
-      prepTime: "25-30",
-      isSpicy: true,
-      isOffer: true
-    }
-  ];
+  // Convert database items to Product format
+  const products: Product[] = menuItems.map(item => ({
+    id: parseInt(item.id.slice(-8), 16), // Convert UUID to number for compatibility
+    dbId: item.id,
+    name: { ar: item.name_ar, en: item.name_en },
+    description: { ar: item.description_ar || '', en: item.description_en || '' },
+    price: item.price,
+    discountPrice: item.discount_price,
+    image: item.image_url || '/placeholder.svg',
+    categoryId: item.category_id,
+    rating: item.rating,
+    prepTime: item.prep_time,
+    isSpicy: item.is_spicy,
+    isOffer: item.is_offer
+  }));
 
   const filteredProducts = selectedCategory === 'all' 
     ? products 
@@ -219,8 +134,10 @@ const FullMenu = () => {
   };
 
   const handleProductClick = (product: Product) => {
-    // Check if product needs customization
-    if (['burger', 'meat', 'chicken'].includes(product.categoryId)) {
+    // Find the database item to check customization setting
+    const dbItem = menuItems.find(item => item.id === product.dbId);
+    
+    if (dbItem?.allow_customization) {
       setCustomizationProduct(product);
     } else {
       // Add directly to cart for simple products
@@ -319,8 +236,17 @@ const FullMenu = () => {
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className={`text-muted-foreground ${isRTL ? 'font-arabic' : ''}`}>
+                {language === 'ar' ? 'جاري تحميل القائمة...' : 'Loading menu...'}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredProducts.map((product) => {
+                const dbItem = menuItems.find(item => item.id === product.dbId);
+                return (
               <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
                 <CardHeader className="p-0 relative">
                   <div className="aspect-[4/3] overflow-hidden">
@@ -392,15 +318,17 @@ const FullMenu = () => {
                       className="hover:scale-105 transition-transform"
                     >
                       <Plus className="h-4 w-4 mr-1" />
-                      {['burger', 'meat', 'chicken'].includes(product.categoryId) 
+                      {dbItem?.allow_customization 
                         ? (language === 'ar' ? 'تخصيص' : 'Customize')
                         : t.addToCart}
                     </Button>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
-          </div>
+                </Card>
+                );
+              })}
+            </div>
+          )}
 
           {/* Empty State */}
           {filteredProducts.length === 0 && (
