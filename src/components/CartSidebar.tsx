@@ -78,31 +78,13 @@ const CartSidebar = ({
   const total = subtotal + deliveryFee;
 
   const handlePlaceOrder = () => {
-    if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
-      toast({
-        title: language === 'ar' ? 'بيانات ناقصة' : 'Missing Information',
-        description: language === 'ar' ? 'يرجى تعبئة جميع البيانات المطلوبة' : 'Please fill in all required fields',
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const orderDetails = {
-      items: cartItems,
-      customer: customerInfo,
-      totals: { subtotal, deliveryFee, total }
-    };
-
-    console.log('Order placed:', orderDetails);
+    console.log('Checkout button clicked!');
+    console.log('Cart items:', cartItems);
+    console.log('Total:', total);
     
-    toast({
-      title: language === 'ar' ? 'تم إرسال الطلب' : 'Order Sent',
-      description: language === 'ar' ? 'سيتم التواصل معك قريباً' : 'We will contact you soon',
-    });
-
-    onClearCart();
-    setCustomerInfo({ name: '', phone: '', address: '', notes: '' });
-    onOpenChange(false);
+    // Since this is just a cart sidebar, call the onCheckout prop
+    // The parent component will handle the actual checkout flow
+    onCheckout();
   };
 
   return (
@@ -217,7 +199,7 @@ const CartSidebar = ({
               {/* Checkout Button */}
               <Button
                 className="w-full h-10 text-sm font-semibold bg-primary hover:bg-primary/90"
-                onClick={onCheckout}
+                onClick={handlePlaceOrder}
               >
                 <span className={isRTL ? 'font-arabic' : ''}>{t.checkout}</span>
               </Button>
