@@ -37,6 +37,7 @@ import MenuItemDialog from "@/components/admin/MenuItemDialog";
 import SpecialOfferDialog from "@/components/admin/SpecialOfferDialog";
 import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
 import CustomizationOptionsDialog from "@/components/admin/CustomizationOptionsDialog";
+import EnhancedCustomizationManager from "@/components/admin/EnhancedCustomizationManager";
 import AdminProfile from "@/components/admin/AdminProfile";
 
 const AdminDashboard = () => {
@@ -280,10 +281,11 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="orders">إدارة الطلبات</TabsTrigger>
             <TabsTrigger value="products">إدارة المنتجات</TabsTrigger>
             <TabsTrigger value="categories">إدارة التصنيفات</TabsTrigger>
+            <TabsTrigger value="customization">خيارات التخصيص</TabsTrigger>
             <TabsTrigger value="offers">العروض الخاصة</TabsTrigger>
             <TabsTrigger value="analytics">التقارير</TabsTrigger>
             <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
@@ -663,20 +665,19 @@ const AdminDashboard = () => {
                       <span>بيتزا مارجريتا</span>
                       <Badge>32 طلب</Badge>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span>دجاج حار مقلي</span>
-                      <Badge>28 طلب</Badge>
-                    </div>
-      {/* Customization Options Dialog */}
-      <CustomizationOptionsDialog
-        isOpen={customizationDialog.open}
-        onClose={() => setCustomizationDialog({ open: false })}
-        option={customizationDialog.option || null}
-      />
-    </div>
+                     <div className="flex items-center justify-between">
+                       <span>دجاج حار مقلي</span>
+                       <Badge>28 طلب</Badge>
+                     </div>
+                   </div>
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Enhanced Customization Tab */}
+          <TabsContent value="customization" className="space-y-4">
+            <EnhancedCustomizationManager />
           </TabsContent>
 
           {/* Profile Tab */}
@@ -715,6 +716,13 @@ const AdminDashboard = () => {
         isOpen={orderDetailsModal.open}
         onOpenChange={(open) => setOrderDetailsModal({ open, order: null })}
         order={orderDetailsModal.order}
+      />
+
+      {/* Customization Options Dialog */}
+      <CustomizationOptionsDialog
+        isOpen={customizationDialog.open}
+        onClose={() => setCustomizationDialog({ open: false })}
+        option={customizationDialog.option || null}
       />
       </div>
     </div>

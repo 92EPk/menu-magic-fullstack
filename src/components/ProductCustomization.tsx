@@ -25,6 +25,11 @@ const ProductCustomization = ({
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
   const { customizationOptions, loading } = useCustomizationOptions();
+  
+  // Filter options by product's category and active status
+  const availableOptions = customizationOptions.filter(option => 
+    option.category_id === product.categoryId && option.is_active
+  ).sort((a, b) => a.sort_order - b.sort_order);
 
   const isRTL = language === 'ar';
   
