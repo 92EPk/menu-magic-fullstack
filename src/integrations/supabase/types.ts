@@ -144,6 +144,35 @@ export type Database = {
           },
         ]
       }
+      favorite_items: {
+        Row: {
+          created_at: string
+          id: string
+          menu_item_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_item_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           allow_customization: boolean | null
@@ -218,6 +247,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -277,6 +339,7 @@ export type Database = {
           status: string | null
           total_amount: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -288,6 +351,7 @@ export type Database = {
           status?: string | null
           total_amount: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -299,8 +363,93 @@ export type Database = {
           status?: string | null
           total_amount?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          date_of_birth: string | null
+          full_name: string | null
+          gender: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          menu_item_id: string
+          order_id: string | null
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          menu_item_id: string
+          order_id?: string | null
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          menu_item_id?: string
+          order_id?: string | null
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       special_offers: {
         Row: {
@@ -350,6 +499,48 @@ export type Database = {
           updated_at?: string
           valid_from?: string | null
           valid_until?: string | null
+        }
+        Relationships: []
+      }
+      user_addresses: {
+        Row: {
+          city: string
+          country: string | null
+          created_at: string
+          id: string
+          is_default: boolean | null
+          postal_code: string | null
+          state: string | null
+          street_address: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          postal_code?: string | null
+          state?: string | null
+          street_address: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          postal_code?: string | null
+          state?: string | null
+          street_address?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

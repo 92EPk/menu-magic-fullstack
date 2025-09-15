@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Menu, X, Globe, Phone, MapPin } from "lucide-react";
+import { ShoppingCart, Menu, X, Globe, Phone, MapPin, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface HeaderProps {
   language: 'ar' | 'en';
@@ -13,6 +14,8 @@ interface HeaderProps {
 
 const Header = ({ language, onLanguageChange, cartItemsCount, onCartClick }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const translations = {
     ar: {
@@ -110,6 +113,28 @@ const Header = ({ language, onLanguageChange, cartItemsCount, onCartClick }: Hea
               {t.call}
             </Button>
             
+            {user ? (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/dashboard')}
+                className="hidden md:inline-flex"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/auth')}
+                className="hidden md:inline-flex"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Sign In
+              </Button>
+            )}
+            
             <Button 
               variant="default"
               onClick={onCartClick}
@@ -162,6 +187,27 @@ const Header = ({ language, onLanguageChange, cartItemsCount, onCartClick }: Hea
                 <Phone className="h-4 w-4 mr-2" />
                 {t.call}
               </Button>
+              {user ? (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate('/auth')}
+                  className="w-full"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Sign In
+                </Button>
+              )}
             </div>
           </nav>
         )}
