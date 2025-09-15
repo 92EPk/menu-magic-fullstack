@@ -469,7 +469,7 @@ const OptionFormDialog = ({ isOpen, onClose, option, selectedCategoryId }: Optio
 };
 
 const EnhancedCustomizationManager = () => {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOption, setEditingOption] = useState<CustomizationOption | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -488,7 +488,7 @@ const EnhancedCustomizationManager = () => {
 
   // Filter options by selected category and search term
   const filteredOptions = customizationOptions.filter(option => {
-    const matchesCategory = !selectedCategoryId || option.category_id === selectedCategoryId;
+    const matchesCategory = selectedCategoryId === 'all' || option.category_id === selectedCategoryId;
     const matchesSearch = !searchTerm || 
       option.name_ar.toLowerCase().includes(searchTerm.toLowerCase()) ||
       option.name_en.toLowerCase().includes(searchTerm.toLowerCase());
@@ -631,7 +631,7 @@ const EnhancedCustomizationManager = () => {
                   <SelectValue placeholder="جميع التصنيفات" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">جميع التصنيفات</SelectItem>
+                  <SelectItem value="all">جميع التصنيفات</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name_ar} ({category.name_en})
@@ -702,7 +702,7 @@ const EnhancedCustomizationManager = () => {
               <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">لا توجد خيارات</h3>
               <p className="text-muted-foreground mb-4">
-                {selectedCategoryId ? 'لا توجد خيارات في هذا التصنيف' : 'ابدأ بإضافة خيارات التخصيص الأولى'}
+                {selectedCategoryId !== 'all' ? 'لا توجد خيارات في هذا التصنيف' : 'ابدأ بإضافة خيارات التخصيص الأولى'}
               </p>
               <Button onClick={handleAddOption}>
                 <Plus className="h-4 w-4 ml-2" />
