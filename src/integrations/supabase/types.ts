@@ -92,13 +92,6 @@ export type Database = {
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "customization_groups_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "simple_menu_view"
-            referencedColumns: ["category_id"]
-          },
         ]
       }
       customization_options: {
@@ -149,13 +142,6 @@ export type Database = {
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "customization_options_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "simple_menu_view"
-            referencedColumns: ["category_id"]
-          },
         ]
       }
       favorite_items: {
@@ -183,13 +169,6 @@ export type Database = {
             columns: ["menu_item_id"]
             isOneToOne: false
             referencedRelation: "menu_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "favorite_items_menu_item_id_fkey"
-            columns: ["menu_item_id"]
-            isOneToOne: false
-            referencedRelation: "simple_menu_view"
             referencedColumns: ["id"]
           },
         ]
@@ -272,13 +251,6 @@ export type Database = {
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "menu_items_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "simple_menu_view"
-            referencedColumns: ["category_id"]
-          },
         ]
       }
       notifications: {
@@ -351,13 +323,6 @@ export type Database = {
             columns: ["menu_item_id"]
             isOneToOne: false
             referencedRelation: "menu_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_menu_item_id_fkey"
-            columns: ["menu_item_id"]
-            isOneToOne: false
-            referencedRelation: "simple_menu_view"
             referencedColumns: ["id"]
           },
           {
@@ -484,13 +449,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "reviews_menu_item_id_fkey"
-            columns: ["menu_item_id"]
-            isOneToOne: false
-            referencedRelation: "simple_menu_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "reviews_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -594,33 +552,7 @@ export type Database = {
       }
     }
     Views: {
-      simple_menu_view: {
-        Row: {
-          category_id: string | null
-          category_info: Json | null
-          category_name_ar: string | null
-          category_name_en: string | null
-          created_at: string | null
-          customization_options: Json | null
-          description_ar: string | null
-          description_en: string | null
-          discount_price: number | null
-          id: string | null
-          image_url: string | null
-          is_available: boolean | null
-          is_featured: boolean | null
-          is_offer: boolean | null
-          is_spicy: boolean | null
-          name_ar: string | null
-          name_en: string | null
-          prep_time: string | null
-          price: number | null
-          rating: number | null
-          sort_order: number | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       update_menu_item_simple: {
