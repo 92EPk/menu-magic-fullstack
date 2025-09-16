@@ -92,6 +92,13 @@ export type Database = {
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "customization_groups_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "simple_menu_view"
+            referencedColumns: ["category_id"]
+          },
         ]
       }
       customization_options: {
@@ -142,6 +149,13 @@ export type Database = {
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "customization_options_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "simple_menu_view"
+            referencedColumns: ["category_id"]
+          },
         ]
       }
       favorite_items: {
@@ -171,13 +185,22 @@ export type Database = {
             referencedRelation: "menu_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "favorite_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "simple_menu_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       menu_items: {
         Row: {
           allow_customization: boolean | null
           category_id: string
+          category_info: Json | null
           created_at: string
+          customization_options: Json | null
           description_ar: string | null
           description_en: string | null
           discount_price: number | null
@@ -198,7 +221,9 @@ export type Database = {
         Insert: {
           allow_customization?: boolean | null
           category_id: string
+          category_info?: Json | null
           created_at?: string
+          customization_options?: Json | null
           description_ar?: string | null
           description_en?: string | null
           discount_price?: number | null
@@ -219,7 +244,9 @@ export type Database = {
         Update: {
           allow_customization?: boolean | null
           category_id?: string
+          category_info?: Json | null
           created_at?: string
+          customization_options?: Json | null
           description_ar?: string | null
           description_en?: string | null
           discount_price?: number | null
@@ -244,6 +271,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "simple_menu_view"
+            referencedColumns: ["category_id"]
           },
         ]
       }
@@ -317,6 +351,13 @@ export type Database = {
             columns: ["menu_item_id"]
             isOneToOne: false
             referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "simple_menu_view"
             referencedColumns: ["id"]
           },
           {
@@ -443,6 +484,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reviews_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "simple_menu_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reviews_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -546,10 +594,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      simple_menu_view: {
+        Row: {
+          category_id: string | null
+          category_info: Json | null
+          category_name_ar: string | null
+          category_name_en: string | null
+          created_at: string | null
+          customization_options: Json | null
+          description_ar: string | null
+          description_en: string | null
+          discount_price: number | null
+          id: string | null
+          image_url: string | null
+          is_available: boolean | null
+          is_featured: boolean | null
+          is_offer: boolean | null
+          is_spicy: boolean | null
+          name_ar: string | null
+          name_en: string | null
+          prep_time: string | null
+          price: number | null
+          rating: number | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      update_menu_item_simple: {
+        Args: { customization_data?: Json; item_data: Json; item_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
